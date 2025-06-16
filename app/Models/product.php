@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Product extends Model
 {
@@ -54,6 +55,8 @@ class Product extends Model
         'preparation_time' => 'integer',
         'calories' => 'integer',
         'sort_order' => 'integer',
+        'sold_count' => 'integer',
+        'views' => 'integer',
     ];
 
     // Relationships
@@ -64,7 +67,7 @@ class Product extends Model
 
     public function transactionItems(): HasMany
     {
-        return $this->hasMany(TransactionItem::class);
+        return $this->hasMany(transaction_items::class);
     }
 
     public function discounts(): BelongsToMany
@@ -87,7 +90,7 @@ class Product extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('stock')
-              ->orWhere('stock', '>', 0);
+                ->orWhere('stock', '>', 0);
         });
     }
 
@@ -105,13 +108,13 @@ class Product extends Model
     public function getIsLowStockAttribute()
     {
         return $this->stock !== null &&
-               $this->stock <= $this->min_stock &&
-               $this->stock > 0;
+            $this->stock <= $this->min_stock &&
+            $this->stock > 0;
     }
 
     public function getStatusLabelAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'available' => 'Tersedia',
             'unavailable' => 'Tidak Tersedia',
             'out_of_stock' => 'Habis',
@@ -132,4 +135,11 @@ class Product extends Model
     {
         return 'Rp ' . number_format($this->price, 0, ',', '.');
     }
+
+    public function scopePopular(Builder $query)
+    {
+        return $query->orderByDesc('sold_count')
+                    ->orderByDesc('views');
+    }
+
 }

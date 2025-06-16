@@ -1,13 +1,13 @@
 import Navbar from '@/components/Navbar';
 import { type ReactNode } from 'react';
-
+import Footer from '@/components/Footer';
 interface AppLayoutProps {
     children: ReactNode;
 }
 export default function LayoutsWeb({ children, ...props }: AppLayoutProps) {
     return (
 
-        <div className="flex bg-white items-center justify-center w-full" {...props}>
+        <div className="flex bg-white flex-col items-center justify-center w-full" {...props}>
 
             <Navbar
                 navItems={[
@@ -17,6 +17,7 @@ export default function LayoutsWeb({ children, ...props }: AppLayoutProps) {
                 ]}
             />
             {children}
+            <Footer />
         </div>
     );
 }

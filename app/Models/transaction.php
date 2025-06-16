@@ -53,7 +53,7 @@ class transaction extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(TransactionItem::class);
+        return $this->hasMany(transaction_items::class);
     }
 
     // Scopes

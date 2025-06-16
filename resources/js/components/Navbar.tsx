@@ -15,13 +15,22 @@ interface NavbarProps {
 function Navbar({ navItems = [] }: NavbarProps) {
     const [windowWidth, setWindowWidth] = useState<number>(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-
+    const [offsetY, setOffsetY] = useState(0);
     // Update window width on resize
+    const mobile = window.innerWidth < 768;
     useEffect(() => {
+
         const handleResize = () => {
             setWindowWidth(window.innerWidth);
         };
+        const handleScroll = () => {
+            if (!mobile) {
+                setOffsetY(window.scrollY);
+                console.log(offsetY);
+            }
+        };
 
+        window.addEventListener("scroll", handleScroll);
         // Set initial width
         handleResize();
 
@@ -29,7 +38,10 @@ function Navbar({ navItems = [] }: NavbarProps) {
         window.addEventListener('resize', handleResize);
 
         // Cleanup
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener("scroll", handleScroll);
+        };
     }, []);
 
     const isMobile = windowWidth <= 768;
@@ -48,15 +60,25 @@ function Navbar({ navItems = [] }: NavbarProps) {
             // Redirect ke profil
         }
     };
-
+    const isScrolled = offsetY > 200;
     return (
-        <nav className=" fixed top-0 w-full z-50">
+        <nav
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+            mobile ? "bg-white shadow-md backdrop-blur-0" :
+            isScrolled
+            ? "bg-white shadow-md backdrop-blur-0"
+            : "backdrop-blur-md"
+        }`}
+        style={{
+          backdropFilter: isScrolled ? "none" : `blur(${Math.min(offsetY * 0.2, 10)}px)`,
+        }}
+      >
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo Section */}
                     <div className="flex items-center space-x-3">
                         <Link href="/" className="flex items-center space-x-2">
-                            <span className="text-xl font-semibold text-gray-800">
+                            <span className={`text-xl font-semibold ${isScrolled ? "text-black" : "text-white"}`}>
                                 My<span className="text-orange-400">Food</span>
                             </span>
                         </Link>
@@ -71,8 +93,9 @@ function Navbar({ navItems = [] }: NavbarProps) {
                                     href={item.href}
                                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${item.active
                                             ? "text-white bg-orange-400"
-                                            : "text-gray-700 hover:text-black hover:bg-gray-50"
-                                        }`}
+                                            : "hover:text-orange-400"
+                                        } ${isScrolled ? "text-black" : "text-white"}`}
+
                                 >
                                     {item.label}
                                 </Link>
