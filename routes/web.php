@@ -3,16 +3,19 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\NotificationController;
+
+// Search products route - keep this one in web routes
+Route::get('/api/search-products', [HomeController::class, 'searchProducts'])->name('api.search-products');
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/Menu', [HomeController::class, 'products'])->name('products');
 Route::get('/Menu/{slug}', [HomeController::class, 'showProduct'])->name('products.show');
 Route::get('/category/{slug}', [HomeController::class, 'showCategory'])->name('category.show');
-Route::get('/about', function () {
-    return Inertia::render('about');
-})->name('about');
-Route::get('/contact', function () {
-    return Inertia::render('contact');
-})->name('contact');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

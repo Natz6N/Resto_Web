@@ -12,6 +12,19 @@ class transaction extends Model
 {
     use HasFactory, SoftDeletes;
 
+    // Payment status constants
+    const PAYMENT_PENDING = 'pending';
+    const PAYMENT_SUCCESS = 'success';
+    const PAYMENT_FAILED = 'failed';
+    const PAYMENT_CANCELED = 'canceled';
+
+    // Order status constants
+    const ORDER_PENDING = 'pending';
+    const ORDER_PREPARING = 'preparing';
+    const ORDER_READY = 'ready';
+    const ORDER_SERVED = 'served';
+    const ORDER_CANCELED = 'cancelled';
+
     protected $fillable = [
         'transaction_code',
         'cashier_id',
@@ -29,6 +42,9 @@ class transaction extends Model
         'notes',
         'midtrans_transaction_id',
         'midtrans_response',
+        'payment_token',
+        'payment_url',
+        'payment_data',
         'paid_at',
         'served_at',
     ];
@@ -41,6 +57,7 @@ class transaction extends Model
         'paid_amount' => 'decimal:2',
         'change_amount' => 'decimal:2',
         'midtrans_response' => 'array',
+        'payment_data' => 'array',
         'paid_at' => 'datetime',
         'served_at' => 'datetime',
     ];
@@ -59,12 +76,17 @@ class transaction extends Model
     // Scopes
     public function scopePaid($query)
     {
-        return $query->where('payment_status', 'dibayar');
+        return $query->where('payment_status', self::PAYMENT_SUCCESS);
     }
 
     public function scopeUnpaid($query)
     {
-        return $query->where('payment_status', 'belum_dibayar');
+        return $query->where('payment_status', self::PAYMENT_PENDING);
+    }
+
+    public function scopeFailed($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_FAILED);
     }
 
     public function scopeToday($query)
@@ -90,9 +112,10 @@ class transaction extends Model
     public function getPaymentStatusLabelAttribute()
     {
         return match($this->payment_status) {
-            'belum_dibayar' => 'Belum Dibayar',
-            'dibayar' => 'Dibayar',
-            'batal' => 'Batal',
+            self::PAYMENT_PENDING => 'Menunggu Pembayaran',
+            self::PAYMENT_SUCCESS => 'Dibayar',
+            self::PAYMENT_FAILED => 'Gagal',
+            self::PAYMENT_CANCELED => 'Dibatalkan',
             default => 'Unknown'
         };
     }
@@ -100,11 +123,11 @@ class transaction extends Model
     public function getOrderStatusLabelAttribute()
     {
         return match($this->order_status) {
-            'pending' => 'Menunggu',
-            'preparing' => 'Sedang Dimasak',
-            'ready' => 'Siap Disajikan',
-            'served' => 'Sudah Disajikan',
-            'cancelled' => 'Dibatalkan',
+            self::ORDER_PENDING => 'Menunggu',
+            self::ORDER_PREPARING => 'Sedang Dimasak',
+            self::ORDER_READY => 'Siap Disajikan',
+            self::ORDER_SERVED => 'Sudah Disajikan',
+            self::ORDER_CANCELED => 'Dibatalkan',
             default => 'Unknown'
         };
     }
@@ -119,6 +142,30 @@ class transaction extends Model
         return $this->items->sum('quantity');
     }
 
+    // Helper methods for payment processing
+    public function isPending()
+    {
+        return $this->payment_status === self::PAYMENT_PENDING;
+    }
+
+    public function isPaid()
+    {
+        return $this->payment_status === self::PAYMENT_SUCCESS;
+    }
+
+    public function markAsPaid()
+    {
+        $this->payment_status = self::PAYMENT_SUCCESS;
+        $this->paid_at = now();
+        return $this->save();
+    }
+
+    public function markAsFailed()
+    {
+        $this->payment_status = self::PAYMENT_FAILED;
+        return $this->save();
+    }
+
     // Boot method for auto-generating transaction code
     protected static function boot()
     {
@@ -127,6 +174,15 @@ class transaction extends Model
         static::creating(function ($transaction) {
             if (!$transaction->transaction_code) {
                 $transaction->transaction_code = static::generateTransactionCode();
+            }
+
+            // Set default values if not provided
+            if (!$transaction->payment_status) {
+                $transaction->payment_status = self::PAYMENT_PENDING;
+            }
+
+            if (!$transaction->order_status) {
+                $transaction->order_status = self::ORDER_PENDING;
             }
         });
     }

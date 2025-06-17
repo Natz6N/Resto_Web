@@ -14,7 +14,7 @@ return new class extends Migration
          Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string('transaction_code')->unique(); // TR240601001
-            $table->foreignId('cashier_id')->constrained('users')->onDelete('restrict');
+            $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
             $table->enum('payment_method', ['COD', 'Midtrans', 'Dummy'])->default('COD');
             $table->enum('payment_status', ['belum_dibayar', 'dibayar', 'batal'])->default('belum_dibayar');
             $table->enum('order_status', ['pending', 'preparing', 'ready', 'served', 'cancelled'])->default('pending');

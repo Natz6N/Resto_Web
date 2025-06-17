@@ -3,7 +3,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Scrollbar, A11y, Autoplay } from 'swiper/modules';
 import { Link } from "@inertiajs/react";
 import { Product, Category } from "@/types/Resto";
-
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -130,11 +129,8 @@ const Carousel: React.FC<CarouselProps> = ({
         const discountAmount = hasDiscount ? originalPrice * (discountValue / 100) : 0;
         const finalPrice = originalPrice - discountAmount;
 
-        // Debug log untuk troubleshooting
-        console.log('Product:', product.name, 'Original Price:', product.price, 'Parsed Price:', originalPrice, 'Final Price:', finalPrice);
-
         return (
-            <div key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100">
+            <Link href={ `${route('products.show', product.slug)}`} key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100">
                 <div className="relative aspect-square">
                     <img
                         src={product.image}
@@ -207,7 +203,7 @@ const Carousel: React.FC<CarouselProps> = ({
                     </div>
 
                 </div>
-            </div>
+            </Link>
         );
     };
 

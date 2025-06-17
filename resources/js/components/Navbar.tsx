@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import React, { useState, useEffect } from "react";
 import Dropdown from "./ui/Dropdown";
 
@@ -16,6 +16,7 @@ function Navbar({ navItems = [] }: NavbarProps) {
     const [windowWidth, setWindowWidth] = useState<number>(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const [offsetY, setOffsetY] = useState(0);
+    const {url} = usePage();
     // Update window width on resize
     const mobile = windowWidth <= 768;
     useEffect(() => {
@@ -43,7 +44,9 @@ function Navbar({ navItems = [] }: NavbarProps) {
             window.removeEventListener("scroll", handleScroll);
         };
     }, []);
-
+    const checkIsActive = (href: string) => {
+        return url === href || url.startsWith(href + "/");
+    };
     const isMobile = windowWidth <= 768;
     const menuItems = navItems.length > 0 ? navItems : [];
 
@@ -86,21 +89,21 @@ function Navbar({ navItems = [] }: NavbarProps) {
 
                     {/* Desktop Navigation */}
                     {!isMobile && (
-                        <div className="hidden md:flex items-center space-x-8">
-                            {menuItems.map((item, index) => (
-                                <Link
-                                    key={index}
-                                    href={item.href}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${item.active
-                                            ? "text-white bg-orange-400"
-                                            : "hover:text-orange-400"
-                                        } ${isScrolled ? "text-black" : "text-white"}`}
-
-                                >
-                                    {item.label}
-                                </Link>
-                            ))}
-                        </div>
+                         <div className="hidden md:flex items-center space-x-8">
+                         {navItems.map((item, index) => (
+                             <Link
+                                 key={index}
+                                 href={item.href}
+                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                                     checkIsActive(item.href)
+                                         ? "text-white bg-orange-400"
+                                         : "hover:text-orange-400"
+                                 } ${isScrolled ? "text-black" : "text-white"}`}
+                             >
+                                 {item.label}
+                             </Link>
+                         ))}
+                     </div>
                     )}
 
                     {/* Right Section - Desktop */}
@@ -167,14 +170,15 @@ function Navbar({ navItems = [] }: NavbarProps) {
                 {isMobile && isMobileMenuOpen && (
                     <div className="md:hidden">
                         <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
-                            {menuItems.map((item, index) => (
+                            {navItems.map((item, index) => (
                                 <Link
                                     key={index}
                                     href={item.href}
-                                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${item.active
+                                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                                        checkIsActive(item.href)
                                             ? "text-blue-600 bg-blue-50"
                                             : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                                        }`}
+                                    }`}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     {item.label}

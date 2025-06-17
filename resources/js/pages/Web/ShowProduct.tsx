@@ -1,399 +1,366 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import { PageProps, Product as ProductType, ProductReview } from '@/types/Resto';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import Carousel from '@/components/carousel';
+import { Star, Heart, ShoppingCart, Clock, Users, ChefHat, Award } from 'lucide-react';
+import WebLayouts from '@/layouts/web-layouts';
 
-interface ShowProductProps extends PageProps {
-  product: ProductType;
-  relatedProducts: ProductType[];
-  reviews: ProductReview[];
+interface ProductImage {
+  id: number;
+  src: string;
+  alt: string;
 }
 
-export default function ShowProduct({ auth, product, relatedProducts, reviews }: ShowProductProps) {
-  const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
+const ShowProduct: React.FC = () => {
+  const [selectedImage, setSelectedImage] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number>(1);
+  const [selectedSize, setSelectedSize] = useState<string>('Regular');
+  const [activeTab, setActiveTab] = useState<string>('description');
 
-  const navItems = [
-    { label: 'Home', href: '/', active: false },
-    { label: 'Products', href: '/products', active: false },
-    { label: 'Product Details', href: `/products/${product.slug}`, active: true },
+  const productImages: ProductImage[] = [
+    { id: 0, src: '/api/placeholder/400/400', alt: 'Nasi Gudeg Jogja - Main' },
+    { id: 1, src: '/api/placeholder/400/400', alt: 'Nasi Gudeg Jogja - Side 1' },
+    { id: 2, src: '/api/placeholder/400/400', alt: 'Nasi Gudeg Jogja - Side 2' },
+    { id: 3, src: '/api/placeholder/400/400', alt: 'Nasi Gudeg Jogja - Ingredients' }
   ];
 
-  const renderStars = (rating: number): React.ReactElement[] => {
-    const stars = [];
-    const fullStars = Math.floor(rating || 0);
+  const sizes = ['Regular', 'Large', 'Extra Large'];
 
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(
-          <span key={i} className="text-yellow-400">★</span>
-        );
-      } else {
-        stars.push(
-          <span key={i} className="text-gray-300">★</span>
-        );
-      }
-    }
-    return stars;
-  };
+  const relatedProducts = [
+    { id: 1, name: 'Sate Ayam Madura', price: 25000, rating: 4.8, image: '/api/placeholder/200/200' },
+    { id: 2, name: 'Rendang Padang', price: 35000, rating: 4.9, image: '/api/placeholder/200/200' },
+    { id: 3, name: 'Gado-Gado Jakarta', price: 20000, rating: 4.7, image: '/api/placeholder/200/200' }
+  ];
 
-  const hasDiscount = product.discounts && product.discounts.length > 0;
-  const discountValue = hasDiscount && product.discounts ? product.discounts[0]?.value : 0;
-  const discountedPrice = hasDiscount ? product.price * (1 - discountValue / 100) : product.price;
-
-  const increaseQuantity = () => {
-    setQuantity(prev => prev + 1);
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
-    }
+  const handleQuantityChange = (change: number) => {
+    setQuantity(Math.max(1, quantity + change));
   };
 
   return (
-    <>
-      <Head title={product.name} />
-      <Navbar navItems={navItems} />
-
-      <main className="container mx-auto px-4 py-8 mt-16">
-        {/* Product Details */}
-        <section className="mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Product Image */}
-            <div className="rounded-xl overflow-hidden">
+    <WebLayouts>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Product Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Product Images */}
+          <div className="space-y-4">
+            <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg">
               <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-auto object-cover"
+                src={productImages[selectedImage].src}
+                alt={productImages[selectedImage].alt}
+                className="w-full h-96 object-cover"
               />
-              {/* Image Gallery */}
-              {product.gallery && product.gallery.length > 0 && (
-                <div className="grid grid-cols-4 gap-2 mt-4">
-                  {product.gallery.map((img, index) => (
-                    <div key={index} className="rounded-lg overflow-hidden">
-                      <img
-                        src={img}
-                        alt={`${product.name} gallery ${index}`}
-                        className="w-full h-24 object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                      />
-                    </div>
-                  ))}
+              <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
+                <Heart className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            <div className="flex space-x-3">
+              {productImages.map((image, index) => (
+                <button
+                  key={image.id}
+                  onClick={() => setSelectedImage(index)}
+                  className={`relative overflow-hidden rounded-lg border-2 transition-all ${
+                    selectedImage === index ? 'border-orange-500' : 'border-gray-200'
+                  }`}
+                >
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-20 h-20 object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product Info */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Nasi Gudeg Jogja Spesial
+              </h1>
+              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                <div className="flex items-center space-x-1">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">4.8</span>
+                  <span>(124 reviews)</span>
                 </div>
-              )}
+                <span>•</span>
+                <span className="text-green-600 font-medium">Available</span>
+              </div>
+              <div className="flex items-center space-x-4 text-3xl font-bold text-gray-900">
+                <span>Rp 28.000</span>
+                <span className="text-lg text-gray-500 line-through">Rp 35.000</span>
+              </div>
             </div>
 
-            {/* Product Info */}
+            <p className="text-gray-600 leading-relaxed">
+              Nikmati kelezatan Gudeg Jogja autentik dengan cita rasa manis khas yang dimasak dengan
+              santan kelapa dan gula merah. Disajikan dengan nasi hangat, ayam kampung, telur, dan kerupuk.
+            </p>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Clock className="w-4 h-4 text-orange-500" />
+                <span>Prep time: 15-20 min</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Users className="w-4 h-4 text-orange-500" />
+                <span>Serves 1-2 people</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <ChefHat className="w-4 h-4 text-orange-500" />
+                <span>Chef's special recipe</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Award className="w-4 h-4 text-orange-500" />
+                <span>Halal certified</span>
+              </div>
+            </div>
+
+            {/* Size Selection */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{product.name}</h1>
-
-              {/* Category */}
-              {product.category && (
-                <div className="mb-4">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                    {product.category.name}
-                  </span>
-                </div>
-              )}
-
-              {/* Rating */}
-              <div className="flex items-center mb-4">
-                <div className="flex items-center mr-2">
-                  {renderStars(product.rating || 0)}
-                </div>
-                <span className="text-sm text-gray-600">
-                  {product.rating || 0} ({product.reviews?.length || 0} reviews)
-                </span>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Size</h3>
+              <div className="flex space-x-3">
+                {sizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                      selectedSize === size
+                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Price */}
-              <div className="mb-6">
-                {hasDiscount ? (
-                  <div className="flex items-center">
-                    <span className="text-3xl font-bold text-gray-800 mr-2">
-                      ${discountedPrice.toFixed(2)}
-                    </span>
-                    <span className="text-xl text-gray-500 line-through">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    <span className="ml-2 bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                      {discountValue}% OFF
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-3xl font-bold text-gray-800">
-                    ${product.price.toFixed(2)}
-                  </span>
-                )}
-              </div>
-
-              {/* Status */}
-              <div className="mb-6">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  product.status === 'available'
-                    ? 'bg-green-100 text-green-800'
-                    : product.status === 'out_of_stock'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {product.status_label}
-                </span>
-              </div>
-
-              {/* Quantity Selector */}
-              {product.status === 'available' && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <div className="flex items-center">
-                    <button
-                      onClick={decreaseQuantity}
-                      className="bg-gray-200 text-gray-600 hover:bg-gray-300 h-10 w-10 rounded-l flex items-center justify-center"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="h-10 w-16 border-y border-gray-200 text-center"
-                    />
-                    <button
-                      onClick={increaseQuantity}
-                      className="bg-gray-200 text-gray-600 hover:bg-gray-300 h-10 w-10 rounded-r flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Add to Cart Button */}
-              <div className="mb-6">
+            {/* Quantity and Add to Cart */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
-                  className={`w-full py-3 px-6 rounded-lg font-medium text-white ${
-                    product.status === 'available'
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-gray-400 cursor-not-allowed'
-                  }`}
-                  disabled={product.status !== 'available'}
+                  onClick={() => handleQuantityChange(-1)}
+                  className="px-3 py-2 text-gray-600 hover:bg-gray-50"
                 >
-                  {product.status === 'available' ? 'Add to Cart' : 'Not Available'}
+                  -
+                </button>
+                <span className="px-4 py-2 font-medium">{quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(1)}
+                  className="px-3 py-2 text-gray-600 hover:bg-gray-50"
+                >
+                  +
                 </button>
               </div>
+              <button className="flex-1 bg-orange-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2">
+                <ShoppingCart className="w-5 h-5" />
+                <span>Add to Cart</span>
+              </button>
+              <button className="border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                Order Now
+              </button>
+            </div>
 
-              {/* Product Features */}
-              <div className="border-t border-gray-200 pt-4">
-                <ul className="space-y-2">
-                  {product.preparation_time && (
-                    <li className="flex items-center text-sm text-gray-600">
-                      <span className="mr-2">⏱️</span>
-                      Preparation Time: {product.preparation_time} minutes
-                    </li>
-                  )}
-                  {product.is_spicy && (
-                    <li className="flex items-center text-sm text-gray-600">
-                      <span className="mr-2">🌶️</span>
-                      Spicy
-                    </li>
-                  )}
-                  {product.is_vegetarian && (
-                    <li className="flex items-center text-sm text-gray-600">
-                      <span className="mr-2">🥬</span>
-                      Vegetarian
-                    </li>
-                  )}
-                  {product.is_vegan && (
-                    <li className="flex items-center text-sm text-gray-600">
-                      <span className="mr-2">🌱</span>
-                      Vegan
-                    </li>
-                  )}
-                  {product.calories && (
-                    <li className="flex items-center text-sm text-gray-600">
-                      <span className="mr-2">🔥</span>
-                      {product.calories} calories
-                    </li>
-                  )}
-                </ul>
+            {/* Service Features */}
+            <div className="grid grid-cols-4 gap-4 pt-6 border-t border-gray-200">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Clock className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-900">Fast Delivery</p>
+                <p className="text-xs text-gray-600">within 30min</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Award className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-900">Quality</p>
+                <p className="text-xs text-gray-600">Guaranteed</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <ShoppingCart className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-900">Easy</p>
+                <p className="text-xs text-gray-600">Online Order</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Users className="w-6 h-6 text-orange-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-900">Customer</p>
+                <p className="text-xs text-gray-600">Support</p>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Product Tabs */}
-        <section className="mb-12">
+        {/* Product Details Tabs */}
+        <div className="mt-16">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('description')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'description'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Description
-              </button>
-              <button
-                onClick={() => setActiveTab('ingredients')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'ingredients'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Ingredients
-              </button>
-              <button
-                onClick={() => setActiveTab('reviews')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'reviews'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Reviews ({reviews.length})
-              </button>
+              {[
+                { id: 'description', label: 'Description' },
+                { id: 'ingredients', label: 'Ingredients' },
+                { id: 'reviews', label: 'Reviews' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </nav>
           </div>
 
-          <div className="py-6">
+          <div className="py-8">
             {activeTab === 'description' && (
               <div className="prose max-w-none">
-                <p>{product.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">About This Dish</h3>
+                <p className="text-gray-600 mb-4">
+                  Gudeg adalah makanan khas Yogyakarta yang terbuat dari nangka muda yang dimasak dengan
+                  santan. Gudeg biasanya dimakan dengan nasi dan disajikan dengan kuah santan yang disebut areh,
+                  ayam kampung, telur pindang, tempe, tahu, dan sambal goreng krecek.
+                </p>
+                <h4 className="font-semibold text-gray-900 mb-2">Nutritional Information</h4>
+                <ul className="text-gray-600 space-y-1">
+                  <li>Calories: 450 per serving</li>
+                  <li>Protein: 25g</li>
+                  <li>Carbohydrates: 55g</li>
+                  <li>Fat: 18g</li>
+                </ul>
               </div>
             )}
 
             {activeTab === 'ingredients' && (
               <div>
-                {product.ingredients && product.ingredients.length > 0 ? (
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ingredients</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Ingredients</h3>
-                    <ul className="list-disc pl-5 space-y-2">
-                      {product.ingredients.map((ingredient, index) => (
-                        <li key={index} className="text-gray-600">{ingredient}</li>
-                      ))}
+                    <h4 className="font-medium text-gray-900 mb-2">Main Ingredients:</h4>
+                    <ul className="text-gray-600 space-y-1">
+                      <li>• Nangka muda (young jackfruit)</li>
+                      <li>• Santan kelapa (coconut milk)</li>
+                      <li>• Gula merah (palm sugar)</li>
+                      <li>• Bumbu halus (ground spices)</li>
+                      <li>• Daun salam (bay leaves)</li>
                     </ul>
-
-                    {product.allergens && product.allergens.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="text-md font-medium text-gray-900 mb-2">Allergen Information</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {product.allergens.map((allergen, index) => (
-                            <span key={index} className="bg-red-50 text-red-700 px-2 py-1 rounded-md text-xs">
-                              {allergen}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <p className="text-gray-500">No ingredient information available.</p>
-                )}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Served With:</h4>
+                    <ul className="text-gray-600 space-y-1">
+                      <li>• Nasi putih (steamed rice)</li>
+                      <li>• Ayam kampung (free-range chicken)</li>
+                      <li>• Telur pindang (braised egg)</li>
+                      <li>• Kerupuk (crackers)</li>
+                      <li>• Sambal (chili sauce)</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             )}
 
             {activeTab === 'reviews' && (
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Reviews</h3>
-
-                {reviews.length > 0 ? (
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 pb-6">
-                        <div className="flex items-center mb-2">
-                          <div className="flex items-center mr-2">
-                            {renderStars(review.rating)}
-                          </div>
-                          <span className="text-sm font-medium text-gray-900">{review.rating}/5</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{review.comment}</p>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <span className="font-medium">{review.customer_name}</span>
-                          <span className="mx-1">•</span>
-                          <span>{new Date(review.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
-                )}
-
-                {/* Review Form */}
-                <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">Write a Review</h4>
-                  <form>
-                    <div className="mb-4">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                      />
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Customer Reviews</h3>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                      ))}
                     </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Rating
-                      </label>
-                      <div className="flex items-center">
+                    <span className="text-sm text-gray-600">4.8 out of 5 (124 reviews)</span>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  {[
+                    { name: 'Sarah M.', rating: 5, comment: 'Gudeg terenak yang pernah saya coba! Rasanya autentik dan porsinya pas.', date: '2 days ago' },
+                    { name: 'Budi S.', rating: 4, comment: 'Makanan datang masih hangat dan fresh. Recommended!', date: '1 week ago' },
+                    { name: 'Rina T.', rating: 5, comment: 'Pelayanan cepat dan rasa tidak mengecewakan. Akan order lagi!', date: '2 weeks ago' }
+                  ].map((review, index) => (
+                    <div key={index} className="border-b border-gray-200 pb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">{review.name[0]}</span>
+                          </div>
+                          <span className="font-medium text-gray-900">{review.name}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">{review.date}</span>
+                      </div>
+                      <div className="flex mb-2">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <button
+                          <Star
                             key={star}
-                            type="button"
-                            className="text-2xl text-yellow-400 focus:outline-none"
-                          >
-                            ★
-                          </button>
+                            className={`w-4 h-4 ${star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                          />
                         ))}
                       </div>
+                      <p className="text-gray-600">{review.comment}</p>
                     </div>
-
-                    <div className="mb-4">
-                      <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Review
-                      </label>
-                      <textarea
-                        id="comment"
-                        rows={4}
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                      ></textarea>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                      Submit Review
-                    </button>
-                  </form>
+                  ))}
                 </div>
               </div>
             )}
           </div>
-        </section>
+        </div>
 
         {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">You May Also Like</h2>
-            <Carousel
-              data={relatedProducts}
-              type="product"
-              showNavigation={true}
-              showPagination={false}
-            />
-          </section>
-        )}
-      </main>
-
-      <Footer />
-    </>
+        <div className="mt-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
+            <button className="text-orange-600 hover:text-orange-700 font-medium">
+              View All →
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {relatedProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="relative">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50">
+                    <Heart className="w-4 h-4 text-gray-600" />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-600">({product.rating})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-gray-900">
+                      Rp {product.price.toLocaleString()}
+                    </span>
+                    <button className="bg-orange-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-orange-700 transition-colors">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+    </WebLayouts>
   );
-}
+};
+
+export default ShowProduct;
