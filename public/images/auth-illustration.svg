@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="245" height="260" viewBox="0 0 245 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Elements -->
+  <rect x="122" y="27" width="120" height="10" rx="5" fill="#F1F1F1"/>
+  <rect x="152" y="54" width="90" height="10" rx="5" fill="#F1F1F1"/>
+  <rect x="172" y="81" width="70" height="10" rx="5" fill="#F1F1F1"/>
+
+  <!-- Button -->
+  <rect x="122" y="110" width="50" height="25" rx="5" fill="#6C5CE7"/>
+
+  <!-- Person Standing -->
+  <g transform="translate(180, 100)">
+    <!-- Body -->
+    <path d="M-20 60C-20 60 -25 40 -25 30C-25 15 -15 0 0 0C15 0 25 15 25 30C25 40 20 60 20 60H-20Z" fill="#6C5CE7" />
+
+    <!-- Head -->
+    <circle cx="0" cy="-10" r="15" fill="#F9D9B4" />
+
+    <!-- Face -->
+    <ellipse cx="-5" cy="-12" rx="1" ry="2" fill="#333" />
+    <ellipse cx="5" cy="-12" rx="1" ry="2" fill="#333" />
+    <path d="M-3 -5C-3 -5 0 -3 3 -5" stroke="#333" stroke-width="1" fill="none" />
+
+    <!-- Arms -->
+    <path d="M-20 30L-35 40" stroke="#6C5CE7" stroke-width="8" stroke-linecap="round" />
+    <path d="M20 30L35 40" stroke="#6C5CE7" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Legs -->
+    <path d="M-10 60L-15 100" stroke="#2D3436" stroke-width="8" stroke-linecap="round" />
+    <path d="M10 60L15 100" stroke="#2D3436" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Feet -->
+    <ellipse cx="-15" cy="100" rx="5" ry="2" fill="#000" />
+    <ellipse cx="15" cy="100" rx="5" ry="2" fill="#000" />
+  </g>
+
+  <!-- Ground Line -->
+  <line x1="0" y1="200" x2="245" y2="200" stroke="#CCCCCC" stroke-width="1" />
+</svg>
