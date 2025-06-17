@@ -29,4 +29,25 @@ class HomeController extends Controller
             'recommendations' => $recommendations,
         ]);
     }
+    public function products()
+    {
+        $products = Product::all();
+        return Inertia::render('Web/Products', [
+            'products' => $products,
+        ]);
+    }
+    public function showProduct($slug)
+    {
+        $product = Product::where('slug', $slug)->first();
+        return Inertia::render('Web/ShowProduct', [
+            'product' => $product,
+        ]);
+    }
+    public function showCategory($slug)
+    {
+        $category = Category::where('slug', $slug)->first();
+        return Inertia::render('Web/ShowCategory', [
+            'category' => $category,
+        ]);
+    }
 }

@@ -70,6 +70,44 @@ const Carousel: React.FC<CarouselProps> = ({
         }
     };
 
+    const renderStars = (rating: number): React.ReactElement[] => {
+        const stars = [];
+        const fullStars = Math.floor(rating || 0);
+
+        for (let i = 0; i < 5; i++) {
+          if (i < fullStars) {
+            stars.push(
+              <span key={i} className="text-yellow-400">★</span>
+            );
+          } else {
+            stars.push(
+              <span key={i} className="text-gray-300">★</span>
+            );
+          }
+        }
+        return stars;
+    };
+
+    // Helper function untuk konversi price
+    const parsePrice = (price: any): number => {
+        if (typeof price === 'number') return price;
+        if (typeof price === 'string') {
+            const parsed = parseFloat(price);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+    };
+
+    // Helper function untuk format currency
+    const formatCurrency = (amount: number): string => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
     // Merge custom breakpoints with defaults
     const mergedBreakpoints = breakpoints ? { ...defaultBreakpoints, ...breakpoints } : defaultBreakpoints;
 
@@ -83,64 +121,91 @@ const Carousel: React.FC<CarouselProps> = ({
         return type === 'category';
     };
 
-    // Render Product Card
     const renderProductCard = (product: Product) => {
         const hasDiscount = product.discounts && product.discounts.length > 0;
-        const discountValue = hasDiscount ? product.discounts[0]?.value : 0;
-        const discountedPrice = hasDiscount ? product.price * (1 - discountValue / 100) : product.price;
+        const discountValue = hasDiscount && product.discounts ? product.discounts[0]?.value : 0;
+
+        // Parse price dengan fungsi helper
+        const originalPrice = parsePrice(product.price);
+        const discountAmount = hasDiscount ? originalPrice * (discountValue / 100) : 0;
+        const finalPrice = originalPrice - discountAmount;
+
+        // Debug log untuk troubleshooting
+        console.log('Product:', product.name, 'Original Price:', product.price, 'Parsed Price:', originalPrice, 'Final Price:', finalPrice);
 
         return (
-            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                <div className="relative">
+            <div key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100">
+                <div className="relative aspect-square">
                     <img
                         src={product.image}
                         alt={product.name}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-full object-cover"
                         loading="lazy"
                     />
+                    {/* Flame icon for promo */}
                     {hasDiscount && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                            -{discountValue}%
+                        <div className="absolute top-3 left-3">
+                            <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs">🔥</span>
+                            </div>
+                        </div>
+                    )}
+                    {/* Promo badge */}
+                    {hasDiscount && (
+                        <div className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            Promo
                         </div>
                     )}
                 </div>
+
                 <div className="p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                    <h3 className="font-semibold text-gray-800 mb-2 text-base line-clamp-2">
                         {product.name}
                     </h3>
-                    {product.description && (
-                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                            {product.description}
-                        </p>
-                    )}
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                            {hasDiscount ? (
-                                <>
-                                    <span className="text-lg font-bold text-red-500">
-                                        Rp {discountedPrice.toLocaleString('id-ID')}
-                                    </span>
-                                    <span className="text-sm text-gray-500 line-through">
-                                        Rp {product.price.toLocaleString('id-ID')}
-                                    </span>
-                                </>
-                            ) : (
+
+                    {/* Rating */}
+                    <div className="flex items-center mb-3">
+                        <div className="flex items-center mr-2">
+                            {renderStars(product.rating || 0)}
+                        </div>
+                        <span className="text-sm text-gray-600 font-medium">
+                            {product.rating || 0}
+                        </span>
+                    </div>
+
+                    {/* Price and discount */}
+                    <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex flex-col space-y-1">
+                                {/* Current/Final Price */}
                                 <span className="text-lg font-bold text-gray-800">
-                                    Rp {product.price.toLocaleString('id-ID')}
+                                    {formatCurrency(finalPrice)}
+                                </span>
+
+                                {/* Original price with strikethrough if discounted */}
+                                {hasDiscount && originalPrice > 0 && (
+                                    <span className="text-sm text-gray-500 line-through">
+                                        {formatCurrency(originalPrice)}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Discount badge */}
+                            {hasDiscount && (
+                                <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-semibold">
+                                    {discountValue}% off
                                 </span>
                             )}
                         </div>
-                        <button
-                            type="button"
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                            onClick={() => {
-                                // Handle add to cart logic here
-                                console.log('Add to cart:', product.id);
-                            }}
-                        >
-                            Beli
-                        </button>
+
+                        {/* Savings amount */}
+                        {hasDiscount && discountAmount > 0 && (
+                            <div className="text-xs text-green-600 font-medium">
+                                Hemat {formatCurrency(discountAmount)}
+                            </div>
+                        )}
                     </div>
+
                 </div>
             </div>
         );
@@ -152,7 +217,7 @@ const Carousel: React.FC<CarouselProps> = ({
             href={`/category/${category.slug}`}
             className="flex flex-col justify-center items-center gap-5 aspect-square bg-white w-full rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
         >
-            <div className="relative flex items-center justify-center overflow-hidden  bg-gray-50">
+            <div className="relative flex items-center justify-center overflow-hidden bg-gray-50">
                 <i className={`${category.icon} text-2xl text-gray-600 group-hover:text-blue-500 transition-colors`}></i>
             </div>
             <div className="text-center">

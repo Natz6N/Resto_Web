@@ -4,6 +4,15 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\HomeController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/Menu', [HomeController::class, 'products'])->name('products');
+Route::get('/Menu/{slug}', [HomeController::class, 'showProduct'])->name('products.show');
+Route::get('/category/{slug}', [HomeController::class, 'showCategory'])->name('category.show');
+Route::get('/about', function () {
+    return Inertia::render('about');
+})->name('about');
+Route::get('/contact', function () {
+    return Inertia::render('contact');
+})->name('contact');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

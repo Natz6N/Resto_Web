@@ -62,6 +62,9 @@ export interface Product {
     is_vegetarian: boolean;
     is_vegan: boolean;
     sort_order: number;
+    rating?: number;
+    views?: number;
+    sold_count?: number;
     created_at: string;
     updated_at: string;
     deleted_at?: string;
@@ -70,6 +73,7 @@ export interface Product {
     category?: Category;
     transaction_items?: TransactionItem[];
     discounts?: Discount[];
+    reviews?: ProductReview[];
 
     // Computed attributes
     is_in_stock: boolean;
@@ -77,6 +81,43 @@ export interface Product {
     status_label: string;
     profit_margin?: number;
     formatted_price: string;
+}
+
+export interface ProductReview {
+    id: number;
+    product_id: number;
+    user_id?: number;
+    customer_name: string;
+    rating: number;
+    comment: string;
+    is_approved: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string;
+
+    // Relationships
+    product?: Product;
+    user?: User;
+}
+
+export interface Feedback {
+    id: number;
+    user_id?: number;
+    customer_name: string;
+    email?: string;
+    subject: string;
+    message: string;
+    rating: number;
+    is_resolved: boolean;
+    resolved_at?: string;
+    resolved_by?: number;
+    response?: string;
+    created_at: string;
+    updated_at: string;
+
+    // Relationships
+    user?: User;
+    resolver?: User;
 }
 
 export interface Transaction {

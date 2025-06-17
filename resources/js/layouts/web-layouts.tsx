@@ -11,9 +11,10 @@ export default function LayoutsWeb({ children, ...props }: AppLayoutProps) {
 
             <Navbar
                 navItems={[
-                    { label: "Dashboard", href: "/dashboard", active: true },
-                    { label: "Products", href: "/products" },
-                    { label: "Home", href: "/Home" },
+                    { label: "Home", href: "/", active: true },
+                    { label: "Menu", href: "/Menu" },
+                    { label: "About", href: "/about" },
+                    { label: "Contact", href: "/contact" },
                 ]}
             />
             {children}

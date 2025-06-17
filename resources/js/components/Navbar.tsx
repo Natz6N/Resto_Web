@@ -17,17 +17,17 @@ function Navbar({ navItems = [] }: NavbarProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const [offsetY, setOffsetY] = useState(0);
     // Update window width on resize
-    const mobile = window.innerWidth < 768;
+    const mobile = windowWidth <= 768;
     useEffect(() => {
 
         const handleResize = () => {
             setWindowWidth(window.innerWidth);
         };
         const handleScroll = () => {
-            if (!mobile) {
-                setOffsetY(window.scrollY);
-                console.log(offsetY);
-            }
+            handleResize();
+            setOffsetY(window.scrollY);
+            console.log(offsetY);
+
         };
 
         window.addEventListener("scroll", handleScroll);

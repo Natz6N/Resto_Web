@@ -84,6 +84,28 @@ export default function Home() {
             type="product"
             showNavigation={false}
             showPagination={false}
+            breakpoints={{
+                320: {
+                  slidesPerView: 2,
+                  spaceBetween: 10
+                },
+                640: {
+                  slidesPerView: 4,
+                  spaceBetween: 10
+                },
+                768: {
+                  slidesPerView: 5,
+                  spaceBetween: 10
+                },
+                1024: {
+                  slidesPerView: 6,
+                  spaceBetween: 10
+                },
+                1280: {
+                  slidesPerView: 8,
+                  spaceBetween: 10
+                }
+              }}
         />
       </section>
       <section className="w-full flex-col flex mt-10 bg-white text-black flex">
@@ -93,6 +115,28 @@ export default function Home() {
             type="product"
             showNavigation={false}
             showPagination={false}
+            breakpoints={{
+                320: {
+                  slidesPerView: 2,
+                  spaceBetween: 10
+                },
+                640: {
+                  slidesPerView: 4,
+                  spaceBetween: 10
+                },
+                768: {
+                  slidesPerView: 5,
+                  spaceBetween: 10
+                },
+                1024: {
+                  slidesPerView: 6,
+                  spaceBetween: 10
+                },
+                1280: {
+                  slidesPerView: 8,
+                  spaceBetween: 10
+                }
+              }}
         />
       </section>
       <section className="w-full flex-col flex mt-10 bg-white text-black flex">
