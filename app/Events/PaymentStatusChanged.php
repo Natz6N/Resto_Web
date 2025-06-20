@@ -36,10 +36,26 @@ class PaymentStatusChanged implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new Channel('payments'),
-            new PrivateChannel('transactions'),
+        $channels = [
+            new Channel('payments'),                // Public channel for all payments
+            new PrivateChannel('transactions'),     // Private channel for transaction history
+            new PrivateChannel('role.kasir'),       // Private channel for cashiers
         ];
+
+        // Add channel for customer if customer ID exists
+        if ($this->transaction->customer_id) {
+            $channels[] = new PrivateChannel('user.' . $this->transaction->customer_id);
+        }
+
+        // If transaction is paid, also notify kitchen staff
+        if ($this->status === 'dibayar') {
+            $channels[] = new PrivateChannel('role.koki');
+        }
+
+        // Add channel for transaction-specific updates
+        $channels[] = new Channel('transaction.' . $this->transaction->id);
+
+        return $channels;
     }
 
     /**
@@ -49,7 +65,7 @@ class PaymentStatusChanged implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        return [
+        $data = [
             'id' => $this->transaction->id,
             'transaction_code' => $this->transaction->transaction_code,
             'status' => $this->status,
@@ -57,7 +73,17 @@ class PaymentStatusChanged implements ShouldBroadcast
             'total_amount' => $this->transaction->total_amount,
             'customer_name' => $this->transaction->customer_name,
             'timestamp' => now()->toIso8601String(),
+            'notification_type' => 'payment_status',
+            'payment_method' => $this->transaction->payment_method
         ];
+
+        // Add payment-specific details if paid
+        if ($this->status === 'dibayar' && $this->transaction->payment_method === 'COD') {
+            $data['paid_amount'] = $this->transaction->paid_amount;
+            $data['change_amount'] = $this->transaction->change_amount;
+        }
+
+        return $data;
     }
 
     /**

@@ -27,8 +27,6 @@ function Navbar({ navItems = [] }: NavbarProps) {
         const handleScroll = () => {
             handleResize();
             setOffsetY(window.scrollY);
-            console.log(offsetY);
-
         };
 
         window.addEventListener("scroll", handleScroll);
@@ -48,6 +46,8 @@ function Navbar({ navItems = [] }: NavbarProps) {
         return url === href || url.startsWith(href + "/");
     };
     const isMobile = windowWidth <= 768;
+    const HomeDetected = url === "/" ;
+    const DontShowScrolleffect = !HomeDetected || isMobile;
     const menuItems = navItems.length > 0 ? navItems : [];
 
     const toggleMobileMenu = () => {
@@ -67,7 +67,7 @@ function Navbar({ navItems = [] }: NavbarProps) {
     return (
         <nav
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-            mobile ? "bg-white shadow-md backdrop-blur-0" :
+            DontShowScrolleffect ? "bg-white shadow-md backdrop-blur-0" :
             isScrolled
             ? "bg-white shadow-md backdrop-blur-0"
             : "backdrop-blur-md"
@@ -81,7 +81,7 @@ function Navbar({ navItems = [] }: NavbarProps) {
                     {/* Logo Section */}
                     <div className="flex items-center space-x-3">
                         <Link href="/" className="flex items-center space-x-2">
-                            <span className={`text-xl font-semibold ${isScrolled ? "text-black" : "text-white"}`}>
+                            <span className={`text-xl font-semibold ${DontShowScrolleffect ? "text-black" : isScrolled ? "text-black" : "text-white"}`}>
                                 My<span className="text-orange-400">Food</span>
                             </span>
                         </Link>
@@ -98,7 +98,7 @@ function Navbar({ navItems = [] }: NavbarProps) {
                                      checkIsActive(item.href)
                                          ? "text-white bg-orange-400"
                                          : "hover:text-orange-400"
-                                 } ${isScrolled ? "text-black" : "text-white"}`}
+                                 } ${DontShowScrolleffect ? "text-black" : isScrolled ? "text-black" : "text-white"}`}
                              >
                                  {item.label}
                              </Link>

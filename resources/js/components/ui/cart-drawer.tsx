@@ -42,7 +42,7 @@ const CartDrawer: React.FC = () => {
 
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>(CheckoutStep.CART);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({ name: '', tableNumber: '' });
-  const [paymentMethod, setPaymentMethod] = useState<string>('test');
+  const [paymentMethod, setPaymentMethod] = useState<string>('Dummy');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
@@ -50,7 +50,7 @@ const CartDrawer: React.FC = () => {
   const resetCheckout = () => {
     setCheckoutStep(CheckoutStep.CART);
     setCustomerInfo({ name: '', tableNumber: '' });
-    setPaymentMethod('test');
+    setPaymentMethod('Dummy');
     setError('');
   };
 
@@ -78,8 +78,8 @@ const CartDrawer: React.FC = () => {
           product_id: item.product.id,
           quantity: item.quantity,
           notes: item.notes || '',
-          price: item.product.price,
-          subtotal: item.subtotal
+          unit_price: item.product.price,
+          total_price: item.subtotal
         })),
         customer_name: customerInfo.name,
         table_number: customerInfo.tableNumber,
@@ -89,27 +89,60 @@ const CartDrawer: React.FC = () => {
         payment_method: paymentMethod
       };
 
+      console.log('Creating transaction with data:', orderData);
+
       // Use the correct API URL with the appropriate base path
       const baseUrl = window.location.origin;
       const response = await axios.post(`${baseUrl}/api/transactions`, orderData);
+      console.log('Transaction created:', response.data);
 
       if (response.data.transaction_id) {
-        // Process payment
-        await axios.post(`${baseUrl}/dashboard/kasir/payment/${response.data.transaction_id}/process`, {
-          payment_method: paymentMethod
-        });
+        try {
+          // Process payment initiation
+          const paymentData = {
+            payment_method: paymentMethod,
+            customer_name: customerInfo.name,
+            table_number: customerInfo.tableNumber,
+          };
 
-        // Clear cart and reset checkout
-        clearCart();
-        resetCheckout();
-        setIsOpen(false);
+          console.log('Initiating payment for transaction:', response.data.transaction_id, paymentData);
 
-        // Navigate to order confirmation page
-        router.visit(`/payment/confirmation/${response.data.transaction_id}`);
+          const paymentResponse = await axios.post(`${baseUrl}/api/payment/${response.data.transaction_id}/process`, paymentData);
+          console.log('Payment initiated:', paymentResponse.data);
+
+          // Clear cart and reset checkout
+          clearCart();
+          resetCheckout();
+          setIsOpen(false);
+
+          // Handle different payment methods
+          if (paymentMethod === 'COD') {
+            // For COD, redirect to cash payment page to input amount
+            window.location.href = `${baseUrl}/payment/${response.data.transaction_id}/cash-payment`;
+          } else if (paymentMethod === 'Midtrans' && paymentResponse.data.payment_url) {
+            // For Midtrans, redirect to payment URL
+            window.location.href = paymentResponse.data.payment_url;
+          } else {
+            // For Dummy or other methods, go to confirmation page
+            window.location.href = `${baseUrl}/payment/confirmation/${response.data.transaction_id}`;
+          }
+        } catch (paymentErr: any) {
+          console.error('Payment initiation error:', paymentErr);
+          setError(paymentErr.response?.data?.error || 'An error occurred during payment initiation. Please try again.');
+        }
       }
     } catch (err: any) {
       console.error('Checkout error:', err);
-      setError(err.response?.data?.message || 'An error occurred during checkout. Please try again later.');
+
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(err.response?.data?.message || err.response?.data?.error || 'An error occurred during checkout. Please try again later.');
+      } else if (err.request) {
+        console.error('Error request:', err.request);
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -160,8 +193,8 @@ const CartDrawer: React.FC = () => {
 
             <div className="space-y-4">
               <div
-                className={`p-3 border rounded flex items-center ${paymentMethod === 'test' ? 'border-blue-500 bg-blue-50' : ''}`}
-                onClick={() => setPaymentMethod('test')}
+                className={`p-3 border rounded flex items-center ${paymentMethod === 'Dummy' ? 'border-blue-500 bg-blue-50' : ''}`}
+                onClick={() => setPaymentMethod('Dummy')}
               >
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                   <ShoppingCart size={18} className="text-blue-600" />
@@ -173,15 +206,15 @@ const CartDrawer: React.FC = () => {
                 <div className="ml-auto">
                   <input
                     type="radio"
-                    checked={paymentMethod === 'test'}
-                    onChange={() => setPaymentMethod('test')}
+                    checked={paymentMethod === 'Dummy'}
+                    onChange={() => setPaymentMethod('Dummy')}
                   />
                 </div>
               </div>
 
               <div
-                className={`p-3 border rounded flex items-center ${paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : ''}`}
-                onClick={() => setPaymentMethod('cash')}
+                className={`p-3 border rounded flex items-center ${paymentMethod === 'COD' ? 'border-blue-500 bg-blue-50' : ''}`}
+                onClick={() => setPaymentMethod('COD')}
               >
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
                   <DollarSign size={18} className="text-green-600" />
@@ -193,15 +226,15 @@ const CartDrawer: React.FC = () => {
                 <div className="ml-auto">
                   <input
                     type="radio"
-                    checked={paymentMethod === 'cash'}
-                    onChange={() => setPaymentMethod('cash')}
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
                   />
                 </div>
               </div>
 
               <div
-                className={`p-3 border rounded flex items-center ${paymentMethod === 'midtrans' ? 'border-blue-500 bg-blue-50' : ''}`}
-                onClick={() => setPaymentMethod('midtrans')}
+                className={`p-3 border rounded flex items-center ${paymentMethod === 'Midtrans' ? 'border-blue-500 bg-blue-50' : ''}`}
+                onClick={() => setPaymentMethod('Midtrans')}
               >
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
                   <CreditCard size={18} className="text-purple-600" />
@@ -213,8 +246,8 @@ const CartDrawer: React.FC = () => {
                 <div className="ml-auto">
                   <input
                     type="radio"
-                    checked={paymentMethod === 'midtrans'}
-                    onChange={() => setPaymentMethod('midtrans')}
+                    checked={paymentMethod === 'Midtrans'}
+                    onChange={() => setPaymentMethod('Midtrans')}
                   />
                 </div>
               </div>

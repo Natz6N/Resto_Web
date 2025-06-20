@@ -37,19 +37,30 @@ class SystemNotification implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        // Based on who the notification is for, broadcast to different channels
+        // Always broadcast to the general notifications channel
         $channels = [new Channel('notifications')];
 
-        if (in_array('admin', $this->for)) {
-            $channels[] = new PrivateChannel('notifications.admin');
+        // Role-specific channels
+        if (in_array('admin', $this->for) || in_array('all', $this->for)) {
+            $channels[] = new PrivateChannel('role.admin');
         }
 
-        if (in_array('kasir', $this->for)) {
-            $channels[] = new PrivateChannel('notifications.kasir');
+        if (in_array('kasir', $this->for) || in_array('all', $this->for)) {
+            $channels[] = new PrivateChannel('role.kasir');
         }
 
-        if (in_array('koki', $this->for)) {
-            $channels[] = new PrivateChannel('notifications.koki');
+        if (in_array('koki', $this->for) || in_array('all', $this->for)) {
+            $channels[] = new PrivateChannel('role.koki');
+        }
+
+        // If notification is for a specific user
+        if (isset($this->data['user_id'])) {
+            $channels[] = new PrivateChannel('user.' . $this->data['user_id']);
+        }
+
+        // If notification is for a specific transaction
+        if (isset($this->data['transaction_id'])) {
+            $channels[] = new Channel('transaction.' . $this->data['transaction_id']);
         }
 
         return $channels;
@@ -68,6 +79,8 @@ class SystemNotification implements ShouldBroadcast
             'data' => $this->data,
             'for' => $this->for,
             'timestamp' => now()->toIso8601String(),
+            'notification_type' => 'system',
+            'id' => uniqid('notification_', true) // Generate a unique ID for the notification
         ];
     }
 

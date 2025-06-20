@@ -13,10 +13,9 @@ class transaction extends Model
     use HasFactory, SoftDeletes;
 
     // Payment status constants
-    const PAYMENT_PENDING = 'pending';
-    const PAYMENT_SUCCESS = 'success';
-    const PAYMENT_FAILED = 'failed';
-    const PAYMENT_CANCELED = 'canceled';
+    const PAYMENT_PENDING = 'belum_dibayar';
+    const PAYMENT_SUCCESS = 'dibayar';
+    const PAYMENT_CANCELED = 'batal';
 
     // Order status constants
     const ORDER_PENDING = 'pending';
@@ -86,7 +85,7 @@ class transaction extends Model
 
     public function scopeFailed($query)
     {
-        return $query->where('payment_status', self::PAYMENT_FAILED);
+        return $query->where('payment_status', self::PAYMENT_CANCELED);
     }
 
     public function scopeToday($query)
@@ -114,7 +113,6 @@ class transaction extends Model
         return match($this->payment_status) {
             self::PAYMENT_PENDING => 'Menunggu Pembayaran',
             self::PAYMENT_SUCCESS => 'Dibayar',
-            self::PAYMENT_FAILED => 'Gagal',
             self::PAYMENT_CANCELED => 'Dibatalkan',
             default => 'Unknown'
         };
@@ -162,7 +160,7 @@ class transaction extends Model
 
     public function markAsFailed()
     {
-        $this->payment_status = self::PAYMENT_FAILED;
+        $this->payment_status = self::PAYMENT_CANCELED;
         return $this->save();
     }
 

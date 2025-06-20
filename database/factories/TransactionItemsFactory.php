@@ -7,7 +7,7 @@ use App\Models\Transaction;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class TransactionItemFactory extends Factory
+class TransactionItemsFactory extends Factory
 {
     protected $model = transaction_items::class;
 
@@ -55,4 +55,3 @@ class TransactionItemFactory extends Factory
         ]);
     }
 }
-;

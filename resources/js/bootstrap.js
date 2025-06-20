@@ -6,36 +6,23 @@
 
 import Echo from 'laravel-echo';
 
-// Set default options for development
-const isLocalDev = window.location.hostname === 'localhost' ||
-                  window.location.hostname === '127.0.0.1';
+import Pusher from 'pusher-js';
+window.Pusher = Pusher;
 
+// Enable console logging for debugging
+window.Pusher.logToConsole = true;
+
+// Initialize Echo for all environments
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY || 'local',
     wsHost: import.meta.env.VITE_REVERB_HOST || window.location.hostname,
-    wsPort: isLocalDev ? 6001 : (import.meta.env.VITE_REVERB_PORT || 80),
-    wssPort: isLocalDev ? 6001 : (import.meta.env.VITE_REVERB_PORT || 443),
-    forceTLS: isLocalDev ? false : ((import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https'),
-    enabledTransports: isLocalDev ? ['ws'] : ['ws', 'wss'],
+    wsPort: import.meta.env.VITE_REVERB_PORT || 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
+    enabledTransports: ['ws', 'wss'],
     disableStats: true,
-    activityTimeout: 60000,
-    enableLogging: import.meta.env.DEV,
-    autoConnect: false,
+    enableLogging: true,
 });
 
-// For development purposes, log Echo connection
-if (import.meta.env.DEV) {
-    window.Echo.connector.socket.on('connect', () => {
-        console.log('Echo connected via Reverb');
-    });
-
-    window.Echo.connector.socket.on('error', (error) => {
-        console.error('Echo connection error:', error);
-    });
-
-    // Try to connect with a delay
-    setTimeout(() => {
-        window.Echo.connect();
-    }, 1000);
-}
+console.log('Echo initialized:', window.Echo);

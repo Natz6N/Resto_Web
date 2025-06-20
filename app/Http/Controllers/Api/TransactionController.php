@@ -19,7 +19,7 @@ class TransactionController extends Controller
      */
     public function getPendingTransactions()
     {
-        $transactions = transaction::where('payment_status', transaction::PAYMENT_PENDING)
+        $transactions = transaction::where('payment_status', 'belum_dibayar')
             ->with(['items.product'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -37,8 +37,8 @@ class TransactionController extends Controller
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'items.*.price' => 'required|numeric|min:0',
-            'items.*.subtotal' => 'required|numeric|min:0',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total_price' => 'required|numeric|min:0',
             'subtotal' => 'required|numeric|min:0',
             'tax_amount' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
@@ -56,8 +56,8 @@ class TransactionController extends Controller
             // Create transaction
             $transaction = new transaction();
             $transaction->cashier_id = Auth::check() ? Auth::id() : null;
-            $transaction->payment_status = transaction::PAYMENT_PENDING;
-            $transaction->order_status = transaction::ORDER_PENDING;
+            $transaction->payment_status = 'belum_dibayar';
+            $transaction->order_status = 'pending';
             $transaction->subtotal = $request->subtotal;
             $transaction->tax_amount = $request->tax_amount;
             $transaction->total_amount = $request->total_amount;
@@ -67,15 +67,16 @@ class TransactionController extends Controller
 
             // Create transaction items
             foreach ($request->items as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('category')->find($item['product_id']);
 
                 $transactionItem = new transaction_items();
                 $transactionItem->transaction_id = $transaction->id;
                 $transactionItem->product_id = $item['product_id'];
                 $transactionItem->quantity = $item['quantity'];
-                $transactionItem->price = $item['price'];
-                $transactionItem->subtotal = $item['subtotal'];
+                $transactionItem->unit_price = $item['unit_price'];
+                $transactionItem->total_price = $item['total_price'];
                 $transactionItem->product_name = $product->name;
+                $transactionItem->category_name = $product->category->name;
                 $transactionItem->notes = $item['notes'] ?? null;
                 $transactionItem->save();
 
@@ -86,9 +87,16 @@ class TransactionController extends Controller
 
             // Log activity
             activity_log::create([
-                'user_id' => Auth::check() ? Auth::id() : null,
-                'action' => 'Create Transaction',
+                'log_name' => 'transactions',
                 'description' => "Created new transaction {$transaction->transaction_code} with " . count($request->items) . " items",
+                'causer_type' => Auth::user() ? get_class(Auth::user()) : null,
+                'causer_id' => Auth::id(),
+                'subject_type' => get_class($transaction),
+                'subject_id' => $transaction->id,
+                'properties' => [
+                    'total_amount' => $transaction->total_amount,
+                    'items_count' => count($request->items)
+                ]
             ]);
 
             DB::commit();

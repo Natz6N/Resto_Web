@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Events\SystemNotification;
+use App\Events\CustomerNotification;
+use App\Events\OrderStatusChanged;
+use App\Events\PaymentStatusChanged;
+use App\Models\transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +20,7 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $role = $user->roles->first()->name ?? 'user';
+        $role = $user->role ?? 'user';
 
         // Get notifications for this user based on role
         $notifications = DB::table('notifications')
@@ -55,7 +59,7 @@ class NotificationController extends Controller
     public function getUnreadCount()
     {
         $user = Auth::user();
-        $role = $user->roles->first()->name ?? 'user';
+        $role = $user->role ?? 'user';
 
         $count = DB::table('notifications')
             ->whereNull('read_at')
@@ -90,6 +94,43 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Test notification sent'
+        ]);
+    }
+
+    /**
+     * Send a test transaction notification
+     */
+    public function testTransactionNotification(Request $request)
+    {
+        $validated = $request->validate([
+            'transaction_id' => 'required|exists:transactions,id',
+            'type' => 'required|string|in:payment,order,customer',
+            'status' => 'required|string',
+            'message' => 'required|string'
+        ]);
+
+        $transaction = transaction::findOrFail($validated['transaction_id']);
+
+        switch ($validated['type']) {
+            case 'payment':
+                event(new PaymentStatusChanged($transaction, $validated['status'], $validated['message']));
+                break;
+            case 'order':
+                event(new OrderStatusChanged($transaction, $validated['status'], $validated['message']));
+                break;
+            case 'customer':
+                event(new CustomerNotification(
+                    'info',
+                    $validated['message'],
+                    $transaction,
+                    ['status' => $validated['status']]
+                ));
+                break;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Test transaction notification sent'
         ]);
     }
 }

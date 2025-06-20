@@ -1,22 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { BellIcon } from 'lucide-react';
 import { useNotifications } from '@/hooks/use-notifications';
+import { usePage } from '@inertiajs/react';
 
 interface NotificationIndicatorProps {
     onToggle?: () => void;
     className?: string;
+    transactionId?: number;
 }
 
 export const NotificationIndicator: React.FC<NotificationIndicatorProps> = ({
     onToggle,
-    className = ''
+    className = '',
+    transactionId
 }) => {
-    const { user } = useAuth();
+    const { auth } = usePage().props as any;
+    const user = auth?.user;
     const role = user?.roles?.[0]?.name || 'all';
+    const userId = user?.id || null;
 
     const { unreadCount, subscribeToChannels } = useNotifications({
         role,
-        autoSubscribe: true
+        userId,
+        transactionId,
+        autoSubscribe: true,
+        enableToasts: true
     });
 
     const hasNotifications = unreadCount > 0;
@@ -38,28 +46,5 @@ export const NotificationIndicator: React.FC<NotificationIndicatorProps> = ({
         </button>
     );
 };
-
-// Hook for using the auth user
-function useAuth() {
-    // This is a placeholder - replace with your actual auth hook or implementation
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        // For example, you might get the user from Inertia page props
-        const pageElement = document.getElementById('app');
-        if (pageElement) {
-            try {
-                const pageProps = JSON.parse(pageElement.dataset.page || '{}');
-                if (pageProps.props && pageProps.props.auth && pageProps.props.auth.user) {
-                    setUser(pageProps.props.auth.user);
-                }
-            } catch (e) {
-                console.error('Error parsing auth user', e);
-            }
-        }
-    }, []);
-
-    return { user };
-}
 
 export default NotificationIndicator;

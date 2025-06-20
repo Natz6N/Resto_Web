@@ -1,136 +1,107 @@
 import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { CheckCircle, XCircle, CreditCard, Clock } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { CreditCard, Check, X, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-interface SimulatePageProps {
+interface SimulateProps {
   transaction: {
     id: number;
     transaction_code: string;
     total_amount: number;
     customer_name?: string;
+    table_number?: string;
+    payment_method: string;
   };
   token: string;
 }
 
-export default function Simulate({ transaction, token }: SimulatePageProps) {
-  const [processing, setProcessing] = useState(false);
-  const { data, setData, post, processing: formProcessing } = useForm({
-    status: 'success',
-  });
+export default function Simulate({ transaction, token }: SimulateProps) {
+  const { post, processing } = useForm();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setProcessing(true);
-
-    // Simulate processing delay
-    setTimeout(() => {
-      post(`/payment/simulate/${token}/result`);
-    }, 2000);
+  const handlePaymentResult = (status: 'success' | 'failed') => {
+    setLoading(true);
+    post(route('payment.simulate.result', { token, status }));
   };
 
   return (
-    <>
-      <Head title="Payment Simulation" />
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+      <Head title="Simulasi Pembayaran Midtrans" />
 
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-blue-600 p-4 text-white text-center">
-            <h1 className="text-2xl font-bold">Payment Simulation</h1>
-            <p className="text-blue-100">This is a test payment page</p>
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="bg-green-600 p-4 text-white flex items-center justify-between">
+          <div className="flex items-center">
+            <CreditCard className="mr-2" />
+            <span className="font-bold text-lg">Midtrans</span>
+          </div>
+          <div className="text-sm">Simulator</div>
+        </div>
+
+        {/* Transaction Info */}
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="text-sm text-gray-500 mb-1">Merchant</div>
+            <div className="font-semibold">Resto App</div>
           </div>
 
-          {/* Transaction Details */}
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold mb-4">Transaction Details</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Order ID:</span>
-                <span className="font-medium">{transaction.transaction_code}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Customer:</span>
-                <span className="font-medium">{transaction.customer_name || 'Guest'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Amount:</span>
-                <span className="font-bold text-lg">
-                  Rp {transaction.total_amount.toLocaleString('id')}
-                </span>
-              </div>
+          <div className="mb-6">
+            <div className="text-sm text-gray-500 mb-1">Order ID</div>
+            <div className="font-semibold">{transaction.transaction_code}</div>
+          </div>
+
+          {transaction.customer_name && (
+            <div className="mb-6">
+              <div className="text-sm text-gray-500 mb-1">Customer</div>
+              <div className="font-semibold">{transaction.customer_name}</div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <div className="text-sm text-gray-500 mb-1">Amount</div>
+            <div className="text-xl font-bold text-green-700">{formatCurrency(transaction.total_amount)}</div>
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg mb-6 flex items-center">
+            <ShieldCheck className="h-6 w-6 text-blue-700 mr-3" />
+            <div className="text-sm">
+              This is a payment simulation. In a real integration, you would be redirected to the Midtrans payment page.
             </div>
           </div>
 
-          {/* Payment Options */}
-          <form onSubmit={handleSubmit} className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Payment Result</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Select the payment result for testing purposes:
-            </p>
+          <div className="text-center">
+            <div className="text-sm text-gray-500 mb-4">Choose payment result:</div>
 
-            <div className="space-y-3">
-              <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="payment_status"
-                  value="success"
-                  checked={data.status === 'success'}
-                  onChange={() => setData('status', 'success')}
-                  className="mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-medium">Successful Payment</div>
-                  <div className="text-sm text-gray-500">Simulate a successful payment</div>
-                </div>
-                <CheckCircle className="h-6 w-6 text-green-500" />
-              </label>
-
-              <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="payment_status"
-                  value="failed"
-                  checked={data.status === 'failed'}
-                  onChange={() => setData('status', 'failed')}
-                  className="mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-medium">Failed Payment</div>
-                  <div className="text-sm text-gray-500">Simulate a failed payment</div>
-                </div>
-                <XCircle className="h-6 w-6 text-red-500" />
-              </label>
-            </div>
-
-            <div className="mt-6">
-              <button
-                type="submit"
-                disabled={processing || formProcessing}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => handlePaymentResult('success')}
+                disabled={processing || loading}
+                className="bg-green-600 hover:bg-green-700 flex items-center justify-center"
               >
-                {processing || formProcessing ? (
-                  <span className="flex items-center justify-center">
-                    <Clock className="animate-spin h-5 w-5 mr-2" />
-                    Processing...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Process Payment
-                  </span>
-                )}
-              </button>
-            </div>
-          </form>
+                <Check className="mr-2 h-5 w-5" />
+                Success
+              </Button>
 
-          {/* Disclaimer */}
-          <div className="p-4 bg-gray-50 text-center text-xs text-gray-500">
-            This is a simulated payment page for testing purposes only.
-            <br />
-            No real payment is being processed.
+              <Button
+                onClick={() => handlePaymentResult('failed')}
+                disabled={processing || loading}
+                className="bg-red-600 hover:bg-red-700 flex items-center justify-center"
+              >
+                <X className="mr-2 h-5 w-5" />
+                Failed
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t p-4 bg-gray-50">
+          <div className="text-xs text-center text-gray-500">
+            Powered by Midtrans Simulator
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
